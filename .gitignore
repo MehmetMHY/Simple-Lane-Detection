@@ -128,7 +128,39 @@ dmypy.json
 # Pyre type checker
 .pyre/
 
+
+
+
+
 # MacOS files
 .DS_Store
+
+# Large Video Files
+*.mp4
+!toronto_highway.mp4 # only included the provided example
+
+*.webm
+*.mpg
+*.mp2
+*.mpeg
+*.mpe
+*.mpv
+*.ogg
+*.m4p
+*.m4v
+*.avi
+*.wmv
+*.mov
+*.qt
+*.flv
+*.swf
+*.avchd
+
+
+
+
+
+
+
 
 
