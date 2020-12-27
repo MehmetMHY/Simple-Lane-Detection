@@ -1,6 +1,5 @@
 """
 Title:  Simple Lane Detection
-Date:   12-14-2020
 Description: This code uses a combination of AOI, Thresholding, Canny, HoughLinesP, & point clustering, 
              to detect the left and right lane of a driving car using classical computer vision methods. 
 """
@@ -9,6 +8,7 @@ Description: This code uses a combination of AOI, Thresholding, Canny, HoughLine
 import math
 import sys
 import cv2
+import os
 
 
 def half_divide(image, splits_per_half, show_clusters=False):
@@ -469,39 +469,117 @@ def classic_lane_detection(video_file, splits_per_half):
         cv2.waitKey(30)
 
 
-class videos:
+def validating_user_input(initial_message, input_message, invalid_message):
     """
-    About: Class of file locations of video of cars driving, captured by dash cam.
-           Some clips/videos were clipped due to them being too long/large.
-           s
+    Input validation for a user's inputted int value. The messages used in this function,
+    can be configured. The messages and inputting will take place in a terminal console.
 
-    Sources:
-        1) cal_freeway: https://www.youtube.com/watch?v=eoXguTDnnHM
-        2) delihi_drive: https://www.youtube.com/watch?v=UjCFTNhZGeo&list=PLUop7b1Q1uZkv5__d2yPZG1cAXcelata8&index=89
-        3) mout_drive: https://www.youtube.com/watch?v=pvUj2M-wRHQ
-        4) missi_drive: https://www.youtube.com/watch?v=isJlndP8V9g&list=PLUop7b1Q1uZkv5__d2yPZG1cAXcelata8&index=18
-        5) toronto_way: https://www.youtube.com/watch?v=uHusTBlqlZI
-        6) toronto_longer: https://www.youtube.com/watch?v=uHusTBlqlZI
+    :param initial_message: string,
+        Initial message for the user to read. This message will be in RED.
+    :param input_message: string,
+        Input message that will be displayed to the user before the user inputs.
+    :param invalid_message: string,
+        Invalid message displayed if the user inputed a non-int value. This message,
+        will be in RED.
+       
+    Returns:
+    :returns: int, the user's inputed whole number with input validation to make sure of it.
     """
 
-    cal_freeway = "assets/california_freeway.mp4"
-    delihi_drive = "assets/delhi_drive.mp4"
-    mout_drive = "assets/M_highway.mp4"
-    missi_drive = "assets/mississauga_drive.mp4"
-    toronto_way = "assets/toronto_highway.mp4"  # INCLUDED
-    toronto_longer = "assets/toronto_highway_longer.mp4"
+    # prints important message in RED
+    print("\033[91m" + str(initial_message) + "\033[0m")
+
+    # gets user's input
+    user_input = str(input(str(input_message)))
+    print()
+
+    # input validation, for making sure the user's input is a whole number
+    while(user_input.isdigit() == False):
+        print("\033[91m" + invalid_message + "\033[0m")
+        user_input = str(input(str(input_message)))
+        print()
+    
+    return int(user_input)
+
+
+def select_video(location):
+    """
+    Give a location/directory, this function will list all the files in that directory,
+    then allow the user to select what video they wish to apply simple lane detection to.
+    Input validation is applied and certain tests are applied to make sure nothing breaks.
+
+    :param location: string, PATH to directory of files, ideally video files.
+       
+    Returns:
+    :returns: string, PATH to user's selected video/file for simple lane detection to use.
+        or
+    :returns: none, a none value is returned if the inputed param fails a test.
+    """
+
+    # make sure location contains "/" before continuing
+    if "/" not in str(location):
+        print("Inputed location value: " + str(location) + ", does not contain a /. Please input something else!")
+        return
+
+    # make sure location/directory exists before continuing
+    try:
+        video_files = os.listdir(str(location))
+    except:
+        print("Inputed directory does not exist: " + str(location))
+        return
+    
+    # make sure location contains more then 0 files before continuing
+    if(len(video_files) == 0):
+        print("No files in inputed directory: " + str(location))
+        return
+    
+    # print all files in location
+    print("\033[4m" + "Files in inputed directory: " + str(location) + "\033[0m")
+    for i in range(len(video_files)):
+        print(str(i) + ") " + str(video_files[i]))
+    print()
+
+    # key string values for validating_user_input() function
+    main_mesg, input_mesg, invalid_mesg = ("Please Select Desired Video For Simple Lane Detection!",
+                                           "Select Video (int): ",
+                                           "Invalid Input, Please Enter Only Whole Numbers!")
+
+    # input validation for user selecting a video in location
+    user_input = validating_user_input(main_mesg, input_mesg, invalid_mesg)
+    while(True):
+        if(user_input >= 0 and user_input < len(video_files)):
+            break
+        else:
+            print("Invalid Input, Try Again! \n")
+            user_input = validating_user_input(main_mesg, input_mesg, invalid_mesg)
+
+    return str(location) + str(video_files[user_input])
+
 
 # main function
 if __name__ == "__main__":
-    # number of divides per each half (right & left) of the image
-    splits_per_half = 6
+
+    # get user to input their desired whole number of the splits_per_half value
+    user_input = validating_user_input("Please Enter splits_per_half To Continue!",
+                                       "Input desired splits_per_half value (ex: 6): ",
+                                       "Invalid Input, Please Enter Only Whole Numbers!")
+
+    # set number of divides per each half (right & left) of the image    
+    splits_per_half = user_input
 
     # selected video name/path
-    video = videos.toronto_way
+    video = select_video("./assets/")   # videos.toronto_way
 
-    # apply clasic lane detection:
-    classic_lane_detection(video, splits_per_half)
-    
-    # closing message
-    print("[ Enter SPACE To Exit ]")
-    cv2.waitKey(0)
+    if video is not None:
+        # apply clasic lane detection:
+        classic_lane_detection(video, splits_per_half)
+        
+        # closing message
+        print("\n" + "[ Enter SPACE To Exit ]")
+        cv2.waitKey(0)
+    else:
+        print("Failed to load, check inputed splits_per_half value or inputed video!")
+
+
+
+
