@@ -577,6 +577,7 @@ if __name__ == "__main__":
         # closing message
         print("\n" + "[ Enter SPACE To Exit ]")
         cv2.waitKey(0)
+        
     else:
         print("Failed to load, check inputed splits_per_half value or inputed video!")
 
