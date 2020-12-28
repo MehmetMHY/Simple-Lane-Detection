@@ -4,172 +4,10 @@ Description: This code uses a combination of AOI, Thresholding, Canny, HoughLine
              to detect the left and right lane of a driving car using classical computer vision methods. 
 """
 
-
 import math
 import sys
 import cv2
 import os
-
-
-def half_divide(image, splits_per_half, show_clusters=False):
-    """
-    Divides image in half and divide those 2 halfs of the image by splits_per_half amount of times
-
-    Parameters:
-    :param image: array, frame/image, ideally the AOI
-    :param splits_per_half: int, number of divides per each half (right & left) of the image
-    :param show_clusters: boolean, visualization of each divide/cluster, drawn with open sqaures
-
-    Returns:
-    :returns: P_left, array
-        An array of top left points (x1,y1) and bottom right points (x2,y2) for each clustering,
-        of the image. This array is for the left side of the divided image.
-
-    :returns: P_right, array
-        An array of top left points (x1,y1) and bottom right points (x2,y2) for each clustering,
-        of the image. This array is for the right side of the divided image.
-    """
-
-    x = image.shape[1]  # width of image
-    y = image.shape[0]  # height of image
-
-    P_left = []
-    P_right = []
-
-    mid = int(x/2)  # mid location of the image
-    point = int(y/splits_per_half)  # divided height of the image by splits_per_half
-
-    # loop though each splits_per_half*2 clusters in the image and store those cluster's,
-    # top-left and bottom-right cooridantes.
-    pos = 0
-    for i in range(splits_per_half):
-
-        left_p1_x = 0
-        left_p1_y = point*pos
-        left_p2_x = mid
-        left_p2_y = point*(pos+1)
-        P_left.append([left_p1_x, left_p1_y, left_p2_x, left_p2_y])
-
-        right_p1_x = mid
-        right_p1_y = point*pos
-        right_p2_x = mid*2
-        right_p2_y = point*(pos+1)
-        P_right.append([right_p1_x, right_p1_y, right_p2_x, right_p2_y])
-
-        if(show_clusters):
-            cv2.rectangle(image, (left_p1_x, left_p1_y), (left_p2_x, left_p2_y), (255, 0, 0), 4)
-            cv2.rectangle(image, (right_p1_x, right_p1_y), (right_p2_x, right_p2_y), (255, 255, 255), 4)
-
-        pos = pos + 1
-    
-    return P_left, P_right, mid
-
-
-def draw_points(image, P, color, thickness):
-    """
-    Plot each a list of given points on a selected image
-
-    Parameters:
-    :param image: array, frame/image.
-    :param P: array, set of (x,y) points.
-    :param color: array, RGB value for points.
-    :param thickness: double, thickness of each point.
-
-    Returns:
-    :returns: Draws inputed points on inputed image.
-    """
-
-    for p in P:
-        cv2.circle(image, p, thickness, color, -1)
-
-
-def group_points(splits_per_half, mid, P, P_left, P_right):
-    """
-    Groups/clusters points based on how the image is divided
-
-    Parameters:
-    :param splits_per_half: int, number of divides per each half (right & left) of the image
-    :param mid: int, middile width location of the image.
-    :param P: list, a set of (x,y) points.
-    :P_left: list, a set of (x,y) points used for "grouping" the left side of the image. 
-             This is an output of half_divide().
-    :P_right: list, a set of (x,y) points used for "grouping" the right side of the image. 
-              This is an output of half_divide().
-
-    Returns:
-    :returns left_group: list of lists of turples, [[(x,y)], [], ...] 
-        A list of lists of turples, where each index presentations each left side divide and,
-        each turple is a (x,y) coordinate on the image.
-    
-    :returns right_group: list of lists of turples, [[(x,y)], [], ...] 
-        A list of lists of turples, where each index presentations each right side divide and,
-        each turple is a (x,y) coordinate on the image.
-    """
-
-    # list of empty lists, used for clustering points
-    left_group = [[] for i in range(splits_per_half)]
-    right_group = [[] for i in range(splits_per_half)]
-
-    # cluster each points based on what sides its on,
-    # as well as what divide a point is on.
-    for points in P:
-        if(points[0] <= mid):
-            c = 0
-            for sections in P_left:
-                x1, y1, x2, y2 = sections
-                if(y1 <= points[1] and y2 >= points[1]):
-                    left_group[c].append(points)
-                c = c + 1
-        else:
-            c = 0
-            for sections in P_right:
-                x1, y1, x2, y2 = sections
-                if(y1 <= points[1] and y2 >= points[1]):
-                    right_group[c].append(points)
-                c = c + 1
-    
-    return left_group, right_group
-
-
-def average_points(left_group, right_group):
-    """
-    Averages every clustering of points for both the left and right sides of the image, into
-    one points per cluster.
-
-    Parameters:
-    :param left_group: list of lists of turples, [[(x,y)], [], ...], 
-        contains all the clustering of the points on the left side of the image.
-    :param right_group: list of lists of turples, [[(x,y)], [], ...], 
-        contains all the clustering of the points on the right side of the image.
-
-    Returns:
-    :returns avg_points_left: list of turples (x,y),
-        A list of turples, where each turple is the averaging of every point in a cluster.
-        For the left side of the image.
-    
-    :returns avg_points_right: list of turples (x,y),
-        A list of turples, where each turple is the averaging of every point in a cluster.
-        For the right side of the image.
-    """
-
-    avg_points_left = []
-    avg_points_right = []
-
-    # average the turple of each cluster for the left side.
-    for grouping in left_group:
-        if(len(grouping) > 0):
-            averaged_point = [sum(point)/len(point) for point in zip(*grouping)]
-            averaged_point = (int(averaged_point[0]), int(averaged_point[1]))
-            avg_points_left.append(averaged_point)
-
-    # average the turple of each cluster for the right side.
-    for grouping in right_group:
-        if(len(grouping) > 0):
-            averaged_point = [sum(point)/len(point) for point in zip(*grouping)]
-            averaged_point = (int(averaged_point[0]), int(averaged_point[1]))
-            avg_points_right.append(averaged_point)
-    
-    return avg_points_left, avg_points_right
 
 
 def draw_lines(image, color, thickness, points):
@@ -188,6 +26,24 @@ def draw_lines(image, color, thickness, points):
     """
     for i in range(len(points)-1):
         cv2.line(image, points[i], points[i+1], color, thickness)
+
+
+def draw_points(image, P, color, thickness):
+    """
+    Plot each a list of given points on a selected image
+
+    Parameters:
+    :param image: array, frame/image.
+    :param P: array, set of (x,y) points.
+    :param color: array, RGB value for points.
+    :param thickness: double, thickness of each point.
+
+    Returns:
+    :returns: Draws inputed points on inputed image.
+    """
+
+    for p in P:
+        cv2.circle(image, p, thickness, color, -1)
 
 
 def get_xy(event, x, y, flags, param):
@@ -296,6 +152,149 @@ def offset_to_original(P, cx1, cy1):
         temp = (P[i][0]+cx1, P[i][1]+cy1)
         new_P.append(temp)
     return new_P
+
+
+def half_divide(image, splits_per_half, show_clusters=False):
+    """
+    Divides image in half and divide those 2 halfs of the image by splits_per_half amount of times
+
+    Parameters:
+    :param image: array, frame/image, ideally the AOI
+    :param splits_per_half: int, number of divides per each half (right & left) of the image
+    :param show_clusters: boolean, visualization of each divide/cluster, drawn with open sqaures
+
+    Returns:
+    :returns: P_left, array
+        An array of top left points (x1,y1) and bottom right points (x2,y2) for each clustering,
+        of the image. This array is for the left side of the divided image.
+
+    :returns: P_right, array
+        An array of top left points (x1,y1) and bottom right points (x2,y2) for each clustering,
+        of the image. This array is for the right side of the divided image.
+    """
+
+    x = image.shape[1]  # width of image
+    y = image.shape[0]  # height of image
+
+    P_left = []
+    P_right = []
+
+    mid = int(x/2)  # mid location of the image
+    point = int(y/splits_per_half)  # divided height of the image by splits_per_half
+
+    # loop though each splits_per_half*2 clusters in the image and store those cluster's,
+    # top-left and bottom-right cooridantes.
+    pos = 0
+    for i in range(splits_per_half):
+
+        left_p1_x = 0
+        left_p1_y = point*pos
+        left_p2_x = mid
+        left_p2_y = point*(pos+1)
+        P_left.append([left_p1_x, left_p1_y, left_p2_x, left_p2_y])
+
+        right_p1_x = mid
+        right_p1_y = point*pos
+        right_p2_x = mid*2
+        right_p2_y = point*(pos+1)
+        P_right.append([right_p1_x, right_p1_y, right_p2_x, right_p2_y])
+
+        if(show_clusters):
+            cv2.rectangle(image, (left_p1_x, left_p1_y), (left_p2_x, left_p2_y), (255, 0, 0), 4)
+            cv2.rectangle(image, (right_p1_x, right_p1_y), (right_p2_x, right_p2_y), (255, 255, 255), 4)
+
+        pos = pos + 1
+    
+    return P_left, P_right, mid
+
+
+def group_points(splits_per_half, mid, P, P_left, P_right):
+    """
+    Groups/clusters points based on how the image is divided
+
+    Parameters:
+    :param splits_per_half: int, number of divides per each half (right & left) of the image
+    :param mid: int, middile width location of the image.
+    :param P: list, a set of (x,y) points.
+    :P_left: list, a set of (x,y) points used for "grouping" the left side of the image. 
+             This is an output of half_divide().
+    :P_right: list, a set of (x,y) points used for "grouping" the right side of the image. 
+              This is an output of half_divide().
+
+    Returns:
+    :returns left_group: list of lists of turples, [[(x,y)], [], ...] 
+        A list of lists of turples, where each index presentations each left side divide and,
+        each turple is a (x,y) coordinate on the image.
+    
+    :returns right_group: list of lists of turples, [[(x,y)], [], ...] 
+        A list of lists of turples, where each index presentations each right side divide and,
+        each turple is a (x,y) coordinate on the image.
+    """
+
+    # list of empty lists, used for clustering points
+    left_group = [[] for i in range(splits_per_half)]
+    right_group = [[] for i in range(splits_per_half)]
+
+    # cluster each points based on what sides its on,
+    # as well as what divide a point is on.
+    for points in P:
+        if(points[0] <= mid):
+            c = 0
+            for sections in P_left:
+                x1, y1, x2, y2 = sections
+                if(y1 <= points[1] and y2 >= points[1]):
+                    left_group[c].append(points)
+                c = c + 1
+        else:
+            c = 0
+            for sections in P_right:
+                x1, y1, x2, y2 = sections
+                if(y1 <= points[1] and y2 >= points[1]):
+                    right_group[c].append(points)
+                c = c + 1
+    
+    return left_group, right_group
+
+
+def average_points(left_group, right_group):
+    """
+    Averages every clustering of points for both the left and right sides of the image, into
+    one points per cluster.
+
+    Parameters:
+    :param left_group: list of lists of turples, [[(x,y)], [], ...], 
+        contains all the clustering of the points on the left side of the image.
+    :param right_group: list of lists of turples, [[(x,y)], [], ...], 
+        contains all the clustering of the points on the right side of the image.
+
+    Returns:
+    :returns avg_points_left: list of turples (x,y),
+        A list of turples, where each turple is the averaging of every point in a cluster.
+        For the left side of the image.
+    
+    :returns avg_points_right: list of turples (x,y),
+        A list of turples, where each turple is the averaging of every point in a cluster.
+        For the right side of the image.
+    """
+
+    avg_points_left = []
+    avg_points_right = []
+
+    # average the turple of each cluster for the left side.
+    for grouping in left_group:
+        if(len(grouping) > 0):
+            averaged_point = [sum(point)/len(point) for point in zip(*grouping)]
+            averaged_point = (int(averaged_point[0]), int(averaged_point[1]))
+            avg_points_left.append(averaged_point)
+
+    # average the turple of each cluster for the right side.
+    for grouping in right_group:
+        if(len(grouping) > 0):
+            averaged_point = [sum(point)/len(point) for point in zip(*grouping)]
+            averaged_point = (int(averaged_point[0]), int(averaged_point[1]))
+            avg_points_right.append(averaged_point)
+    
+    return avg_points_left, avg_points_right
 
 
 def highlight_lanes(draw_image, avg_points_left, avg_points_right):
@@ -467,119 +466,6 @@ def classic_lane_detection(video_file, splits_per_half):
         cv2.imshow("Selected AOI Point Of View", img)
 
         cv2.waitKey(30)
-
-
-def validating_user_input(initial_message, input_message, invalid_message):
-    """
-    Input validation for a user's inputted int value. The messages used in this function,
-    can be configured. The messages and inputting will take place in a terminal console.
-
-    :param initial_message: string,
-        Initial message for the user to read. This message will be in RED.
-    :param input_message: string,
-        Input message that will be displayed to the user before the user inputs.
-    :param invalid_message: string,
-        Invalid message displayed if the user inputed a non-int value. This message,
-        will be in RED.
-       
-    Returns:
-    :returns: int, the user's inputed whole number with input validation to make sure of it.
-    """
-
-    # prints important message in RED
-    print("\033[91m" + str(initial_message) + "\033[0m")
-
-    # gets user's input
-    user_input = str(input(str(input_message)))
-    print()
-
-    # input validation, for making sure the user's input is a whole number
-    while(user_input.isdigit() == False):
-        print("\033[91m" + invalid_message + "\033[0m")
-        user_input = str(input(str(input_message)))
-        print()
-    
-    return int(user_input)
-
-
-def select_video(location):
-    """
-    Give a location/directory, this function will list all the files in that directory,
-    then allow the user to select what video they wish to apply simple lane detection to.
-    Input validation is applied and certain tests are applied to make sure nothing breaks.
-
-    :param location: string, PATH to directory of files, ideally video files.
-       
-    Returns:
-    :returns: string, PATH to user's selected video/file for simple lane detection to use.
-        or
-    :returns: none, a none value is returned if the inputed param fails a test.
-    """
-
-    # make sure location contains "/" before continuing
-    if "/" not in str(location):
-        print("Inputed location value: " + str(location) + ", does not contain a /. Please input something else!")
-        return
-
-    # make sure location/directory exists before continuing
-    try:
-        video_files = os.listdir(str(location))
-    except:
-        print("Inputed directory does not exist: " + str(location))
-        return
-    
-    # make sure location contains more then 0 files before continuing
-    if(len(video_files) == 0):
-        print("No files in inputed directory: " + str(location))
-        return
-    
-    # print all files in location
-    print("\033[4m" + "Files in inputed directory: " + str(location) + "\033[0m")
-    for i in range(len(video_files)):
-        print(str(i) + ") " + str(video_files[i]))
-    print()
-
-    # key string values for validating_user_input() function
-    main_mesg, input_mesg, invalid_mesg = ("Please Select Desired Video For Simple Lane Detection!",
-                                           "Select Video (int): ",
-                                           "Invalid Input, Please Enter Only Whole Numbers!")
-
-    # input validation for user selecting a video in location
-    user_input = validating_user_input(main_mesg, input_mesg, invalid_mesg)
-    while(True):
-        if(user_input >= 0 and user_input < len(video_files)):
-            break
-        else:
-            print("Invalid Input, Try Again! \n")
-            user_input = validating_user_input(main_mesg, input_mesg, invalid_mesg)
-
-    return str(location) + str(video_files[user_input])
-
-
-# main function
-if __name__ == "__main__":
-
-    # get user to input their desired whole number of the splits_per_half value
-    user_input = validating_user_input("Please Enter splits_per_half To Continue!",
-                                       "Input desired splits_per_half value (ex: 6): ",
-                                       "Invalid Input, Please Enter Only Whole Numbers!")
-
-    # set number of divides per each half (right & left) of the image    
-    splits_per_half = user_input
-
-    # selected video name/path
-    video = select_video("./assets/")   # videos.toronto_way
-
-    if video is not None:
-        # apply clasic lane detection:
-        classic_lane_detection(video, splits_per_half)
-        
-        # closing message
-        print("\n" + "[ Enter SPACE To Exit ]")
-        cv2.waitKey(0)
-        
-    else:
-        print("Failed to load, check inputed splits_per_half value or inputed video!")
 
 
 
