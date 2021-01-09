@@ -1,6 +1,6 @@
 # Simple Lane Detection
 - By: Mehmet Yilmaz
-- Date: 12-21-2020
+- Date: 1-9-2021
 
 
 ## About:
@@ -22,14 +22,16 @@
 - Big bugs found with this current method can be seen and explained though Figure 1:
 <img width="887" alt="figure_1" src="https://user-images.githubusercontent.com/15916367/103167390-07932280-47e8-11eb-830c-9c66a1dc8ada.png">
 
-## Papers Read:
+## Credits:
+
+### - Papers Read:
 - [Advanced lane detection technique for structural highway based on computer vision algorithm](https://www.sciencedirect.com/science/article/pii/S2214785320373302?casa_token=M4ZoLzeJwx4AAAAA:ukSK4iSWKjdMNAMMDgsUf315ZNYUahOzGfoExKCEooWribsMTM6Jo-9V-C4EwBglgmOa69tYquA)
 
 - [Real-time Lane detection and Motion Planning in Raspberry Pi and Arduino for an Autonomous Vehicle Prototype](https://arxiv.org/pdf/2009.09391.pdf)
 
 - [Real-Time Lane Departure Detection Based on Extended Edge-Linking Algorithm](https://ieeexplore.ieee.org/document/5489518)
 
-## Driving Clips:
+### - Driving Clips:
 - Due to many driving car footages being too long and/or having too high of a resolution, I had to trim/clip them into a smaller length as well as a lower resolution. The driving footage included in this repo is a clip/segment from toronto_way.
 
 - (YouTube) Self Driving Car Complete Dataset: [[link](https://www.youtube.com/playlist?list=PLUop7b1Q1uZkv5__d2yPZG1cAXcelata8)]
@@ -41,4 +43,16 @@
 	- missi_drive: [[link](https://www.youtube.com/watch?v=isJlndP8V9g&list=PLUop7b1Q1uZkv5__d2yPZG1cAXcelata8&index=18)]
 	- toronto_way: [[link](https://www.youtube.com/watch?v=uHusTBlqlZI)], # clip included!
 	- toronto_longer: [[link](https://www.youtube.com/watch?v=uHusTBlqlZI)]
+
+### - Other Sources:
+- [OpenCV Canny Edge Detection Doc](https://opencv-python-tutroals.readthedocs.io/en/latest/py_tutorials/py_imgproc/py_canny/py_canny.html)
+- [OpenCV Hough Line Transform Doc](https://opencv-python-tutroals.readthedocs.io/en/latest/py_tutorials/py_imgproc/py_houghlines/py_houghlines.html)
+- [OpenCV Smoothing Images Doc](https://opencv-python-tutroals.readthedocs.io/en/latest/py_tutorials/py_imgproc/py_filtering/py_filtering.html)
+- [StackOverflow Detect Mouse Position Click - Discussion](https://stackoverflow.com/questions/28327020/opencv-detect-mouse-position-clicking-over-a-picture)
+-   *The following functions where provided to me from the class CSCI437 (Colorado School of Mines) during the Fall 2020 semester:*
+
+        get_xy()
+		create_named_window()
+
+	- *These functions were modified for this project. Some of these functions are no longer in use but they can be found in this repo's git history so I wanted to include this credit.*
 

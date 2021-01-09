@@ -70,13 +70,14 @@ def get_xy(event, x, y, flags, param):
     """
 
     list_limit = 2  # number of points need to cropping
+    square_size = 15    # size of the squares drawn where the mouse click occurs
 
     # listen for mouse clicks on new window
     if event == cv2.EVENT_LBUTTONUP:
         window_name, image, point_list = param  # Unpack parameters
 
         # draw red open sqaure at were a mouse click was placed in an image
-        cv2.rectangle(image, pt1=(x-15, y-15), pt2=(x+15, y+15), color=(0,0,255),thickness=3)
+        cv2.rectangle(image, pt1=(x-square_size, y-square_size), pt2=(x+square_size, y+square_size), color=(0,0,255),thickness=3)
         cv2.imshow(window_name, image)
 
         # only collect two mouse click coordinates, print message after 
@@ -85,33 +86,6 @@ def get_xy(event, x, y, flags, param):
             point_list.append((x, y))
         else:
             print("Maxed out number of clicks, please hit ENTER or CTRL-C")
-
-
-def create_named_window(window_name, image):
-    """
-    Utility function to create an image window.
-
-    Parameters:
-    :param window_name: string, name of OpenCV window.
-    :param image: array, frame/image. 
-
-    Returns:
-    :returns: New, resized, OpenCV window
-    """
-
-    # WINDOW_NORMAL allows resize; use WINDOW_AUTOSIZE for no resize.
-    cv2.namedWindow(window_name, cv2.WINDOW_NORMAL)
-    h = image.shape[0]  # image height
-    w = image.shape[1]  # image width
-
-    # Shrink the window if it is too big (exceeds some maximum size).
-    WIN_MAX_SIZE = 1000
-    if max(w, h) > WIN_MAX_SIZE:
-        scale = WIN_MAX_SIZE / max(w, h)
-    else:
-        scale = 1
-    
-    cv2.resizeWindow(winname=window_name, width=int(w * scale), height=int(h * scale))
 
 
 def crop_edges(points_list):
@@ -387,10 +361,14 @@ def classic_lane_detection(video_file, splits_per_half):
 
             # rather mouse clicks on image, to determine the two points needed to apply AOI
             mouse_display = image.copy()
-            create_named_window(window_name, mouse_display)
+
+            # open window for mouse input
             cv2.imshow(window_name, mouse_display)
             cv2.setMouseCallback(window_name, on_mouse=get_xy, param=(window_name, mouse_display, crop_points))
             cv2.waitKey(0)
+
+            # close mouse window
+            cv2.destroyAllWindows()
 
         # load variables from determined AOI points
         cx1, cy1, cx2, cy2 = crop_edges(crop_points)
