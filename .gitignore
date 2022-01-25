@@ -135,6 +135,9 @@ dmypy.json
 # MacOS files
 .DS_Store
 
+# python environment
+env/*
+
 # Large Video Files
 *.mp4
 !toronto_highway.mp4 # only included the provided example
