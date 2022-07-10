@@ -31,6 +31,7 @@ if __name__ == "__main__":
             
         else:
             print("Failed to load, check inputed splits_per_half value or inputed video!")
+
     except KeyboardInterrupt:
         print("\n" + "Closed program due to interrupt caused by the pressing of CTRL-C")
         pass
