@@ -1,6 +1,5 @@
 # Simple Lane Detection
 - By: Mehmet Yilmaz
-- Date: 1-9-2021
 
 
 ## About:
