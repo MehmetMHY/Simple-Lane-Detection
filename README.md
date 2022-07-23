@@ -13,13 +13,17 @@
 - Apply object detection for detecting cars and none road-like objects. In doing so, those objects can be blurred or removed which would remove more noise from a frame.
 
 ## Simple Preview:
-![SLD-preview](https://user-images.githubusercontent.com/15916367/102777441-d335e700-434d-11eb-8f0b-a4ec1089d4dd.gif)
+<p align="center">
+	<img alt="figure_1" src="./assets/demo.gif">
+</p>
 
 ## Key Bugs & Limitations:
 - A big limitation with this method is that the left and right lanes, two lanes total, of the driving vehicle can potentially be detected, limiting what the code can provide to the car overall.
 
 - Big bugs found with this current method can be seen and explained though Figure 1:
-<img width="887" alt="figure_1" src="https://user-images.githubusercontent.com/15916367/103167390-07932280-47e8-11eb-830c-9c66a1dc8ada.png">
+<p align="center">
+	<img width="887" alt="figure_1" src="./assets/current_bugs.png">
+</p>
 
 ## Credits:
 
