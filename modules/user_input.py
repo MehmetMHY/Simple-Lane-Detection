@@ -56,6 +56,13 @@ def select_video(location):
     :returns: none, a none value is returned if the inputed param fails a test.
     """
 
+    # common video file extensions
+    video_file_extensions = [
+        ".webm", ".mpg", ".mp2", ".mpeg", ".mpe", ".mpv",
+        ".ogg", "m4p", "m4v", ".avi", ".wmv", ".mov",
+        ".qt", ".flv", ".swf", ".avchd", ".mp4"
+    ]
+
     # make sure location contains "/" before continuing
     if "/" not in str(location):
         print("Inputed location value: " + str(location) + ", does not contain a /. Please input something else!")
@@ -63,10 +70,18 @@ def select_video(location):
 
     # make sure location/directory exists before continuing
     try:
-        video_files = os.listdir(str(location))
+        all_files = os.listdir(str(location))
     except:
         print("Inputed directory does not exist: " + str(location))
         return
+
+    # grab only files that are video files
+    video_files = []
+    for file in all_files:
+        for vext in video_file_extensions:
+            if str(vext) in str(file):
+                video_files.append(file)
+                break
     
     # make sure location contains more then 0 files before continuing
     if(len(video_files) == 0):
