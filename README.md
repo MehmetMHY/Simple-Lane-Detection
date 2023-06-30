@@ -46,6 +46,7 @@
 	- missi_drive: [[link](https://www.youtube.com/watch?v=isJlndP8V9g&list=PLUop7b1Q1uZkv5__d2yPZG1cAXcelata8&index=18)]
 	- toronto_way: [[link](https://www.youtube.com/watch?v=uHusTBlqlZI)], # clip included!
 	- toronto_longer: [[link](https://www.youtube.com/watch?v=uHusTBlqlZI)]
+    - seattle_streets: [[link](https://www.youtube.com/watch?v=fkps18H3SXY)]
 
 ### - Other Sources:
 - [OpenCV Canny Edge Detection Doc](https://opencv-python-tutroals.readthedocs.io/en/latest/py_tutorials/py_imgproc/py_canny/py_canny.html)
